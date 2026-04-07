@@ -9,6 +9,8 @@ function isPublicRoute(pathname: string) {
   return (
     pathname === '/' ||
     pathname === '/login' ||
+    pathname === '/auth/callback' ||
+    pathname === '/auth/confirm' ||
     pathname.startsWith('/store/')
   )
 }

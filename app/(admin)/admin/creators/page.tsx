@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/server'
-import { Button } from '@/components/ui/button'
+import { CreateCreatorDialog } from '@/components/admin/create-creator-dialog'
+import { DeleteCreatorButton } from '@/components/admin/delete-creator-button'
 import {
   Table,
   TableBody,
@@ -27,7 +28,7 @@ export default async function CreatorsPage() {
             Manage creator accounts
           </p>
         </div>
-        <Button size="sm">Add creator</Button>
+        <CreateCreatorDialog />
       </div>
 
       {creators && creators.length > 0 ? (
@@ -38,6 +39,7 @@ export default async function CreatorsPage() {
               <TableHead>Email</TableHead>
               <TableHead>Campaigns</TableHead>
               <TableHead>Joined</TableHead>
+              <TableHead />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -50,6 +52,9 @@ export default async function CreatorsPage() {
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {new Date(creator.created_at).toLocaleDateString()}
+                </TableCell>
+                <TableCell className="text-right">
+                  <DeleteCreatorButton creatorId={creator.id} creatorName={creator.full_name} />
                 </TableCell>
               </TableRow>
             ))}
