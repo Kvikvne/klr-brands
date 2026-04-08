@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/server'
+import { sendOrderConfirmation } from '@/lib/mailer'
 import type { CartItem } from '@/types'
 
 export async function submitOrder(
@@ -15,7 +16,7 @@ export async function submitOrder(
   // Verify campaign is still live
   const { data: campaign } = await supabase
     .from('campaigns')
-    .select('status')
+    .select('status, title')
     .eq('id', campaignId)
     .single()
 
@@ -89,6 +90,27 @@ export async function submitOrder(
     await supabase.from('orders').delete().eq('id', order.id)
     return { error: itemsError.message }
   }
+
+  const resolvedItems = cartItems.map((item) => ({
+    product_name: item.product_name,
+    color_name: item.color_name,
+    size_name: item.size_name,
+    quantity: item.quantity,
+    unit_price: priceMap.get(item.campaign_product_id) ?? item.unit_price,
+  }))
+  const total = resolvedItems.reduce((sum, i) => sum + i.unit_price * i.quantity, 0)
+
+  // Fire-and-forget — don't fail the order if email fails
+  sendOrderConfirmation({
+    to: buyer_email,
+    buyerName: buyer_name,
+    campaignTitle: campaign.title,
+    orderId: order.id,
+    items: resolvedItems,
+    total,
+    fulfillmentType: fulfillment_type,
+    deliveryAddress: delivery_address,
+  }).catch((err) => console.error('Order confirmation email failed:', err))
 
   return { orderId: order.id }
 }
