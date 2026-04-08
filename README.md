@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Group Order Platform
 
-## Getting Started
+A custom tee shirt and sticker group-order platform for a small apartment-based business. Creators build campaign storefronts, buyers place orders anonymously, and the admin manages everything end-to-end.
 
-First, run the development server:
+## Roles
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+| Role | Description |
+|------|-------------|
+| **Admin** | Business owner. Manages catalog, creators, campaigns, orders, and fulfillment. |
+| **Creator** | Group organizer. Creates campaign drafts, picks products/colors, publishes storefronts. |
+| **Buyer** | Anonymous customer. Browses storefront, adds to cart, submits order form. No account required. |
+
+## Stack
+
+- **Next.js** (App Router, server actions)
+- **TypeScript**
+- **Tailwind CSS v4**
+- **shadcn/ui**
+- **Supabase** — Postgres, Auth, Storage
+- **Vercel** — hosting + cron jobs
+- **Nodemailer** (Gmail SMTP) — email notifications
+- **pdf-lib** — production PDF exports
+
+## Setup
+
+### 1. Environment variables
+
+Create a `.env.local` file:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` is the **anon/public** key (Supabase renamed it in v0.10+)
+- `SUPABASE_SERVICE_ROLE_KEY` is used server-side only for admin auth operations (inviting creators)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 2. Database
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Run `supabase/schema.sql` in the Supabase SQL editor. This creates:
 
-## Learn More
+- All tables, enums, indexes, and triggers
+- RLS policies (admin bypass via `is_admin()` security definer function)
+- `update_updated_at()` trigger on all relevant tables
 
-To learn more about Next.js, take a look at the following resources:
+### 3. Create admin user
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Create a user in Supabase Auth dashboard
+2. Insert a row into `profiles`:
+   ```sql
+   INSERT INTO profiles (id, email, role) VALUES ('<auth-user-id>', 'admin@example.com', 'admin');
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 4. Supabase Auth settings
 
-## Deploy on Vercel
+In the Supabase dashboard under **Authentication → URL Configuration**:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Site URL**: `http://localhost:3000` (or your production URL)
+- **Redirect URLs**: add `http://localhost:3000/auth/confirm`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The invite email for creators uses an implicit token flow — the `/auth/confirm` client page handles extracting tokens from the URL hash and setting the session.
+
+### 5. Run locally
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+## What's built
+
+- [x] Auth — login, invite flow, set-password for new creators
+- [x] Root middleware — route protection by role
+- [x] Admin — overview dashboard with stats
+- [x] Admin — creator management (invite, delete)
+- [x] Admin — product catalog (products, colors, sizes, placements) with URL-based tabs
+- [x] Admin — product detail page (edit details, assign colors/sizes/placements)
+- [x] Creator — dashboard with campaign list
+- [x] Creator — new campaign form
+- [x] Creator — campaign editor (details, product selection, color selection, publish/unpublish)
+
+## What's not built yet
+
+- [ ] Public storefront (`/store/[slug]`) — localStorage cart, anonymous order form
+- [ ] Design file uploads — per campaign product + placement (Supabase Storage)
+- [ ] Admin campaign detail — view orders, mark fulfilled
+- [ ] Email notifications — buyer confirmation, admin alerts, daily digest
+- [ ] Production exports — NLA purchase list, print spec PDF, distribution list
+- [ ] Cron job — auto-close campaigns past deadline
+- [ ] Mockup images — admin uploads per product + color
+
+## Deployment
+
+Deploy to Vercel. Set the same environment variables in the Vercel project settings. The `NEXT_PUBLIC_SITE_URL` should be your production domain.

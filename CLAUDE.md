@@ -7,389 +7,209 @@ This project is a **custom tee shirt and sticker group-order platform** for a sm
 It allows:
 
 - **Admin** to manage creators, products, pricing, campaigns, and fulfillment
-
 - **Creators** to create campaign-based storefronts for their group
-
 - **Buyers** to place orders through a shared storefront link
 
 ### Business rules
 
 - No public marketplace
-
 - No buyer accounts
-
 - No payment processing
-
 - Fulfillment is **pickup or delivery only**
-
 - Orders are collected first, then invoiced and fulfilled manually
-
 - The platform is for a **closed community**, not general public use
 
-This is a **v1 MVP** optimized for:
-
-- simplicity
-
-- low monthly cost
-
-- low maintenance
-
-- fast implementation by one developer
+This is a **v1 MVP** optimized for simplicity, low monthly cost, low maintenance, and fast implementation by one developer.
 
 ---
 
-## Recommended Tech Stack
+## Tech Stack
 
-Use the simplest possible stack:
-
-- **Next.js**
-
+- **Next.js 16** — App Router, server actions, server components
 - **TypeScript**
-
-- **Tailwind CSS**
-
-- **shadcn/ui**
-
-- **Supabase Postgres**
-
-- **Supabase Auth**
-
-- **Supabase Storage**
-
-- **Vercel**
-
-- **Gmail SMTP Nodemailer** for email
-
-- **Vercel Cron** for scheduled jobs
-
-- **pdf-lib** for PDF generation
+- **Tailwind CSS v4**
+- **shadcn/ui** — component library (radix-ui v1, no `@radix-ui/*` packages)
+- **Supabase Postgres** — database with RLS
+- **Supabase Auth** — email/password + invite flow
+- **Supabase Storage** — design file and mockup image uploads (not yet implemented)
+- **Vercel** — hosting
+- **Gmail SMTP + Nodemailer** — email (not yet implemented)
+- **Vercel Cron** — scheduled jobs (not yet implemented)
+- **pdf-lib** — PDF generation (not yet implemented)
 
 ### Architecture goal
 
-Keep this as a **single monolithic Next.js app**.
+Single monolithic Next.js app. Do not introduce Prisma, a separate backend, Redis, queues, Docker, or unnecessary abstractions.
 
-Do **not** introduce:
+---
 
-- Prisma for v1
+## Styling conventions
 
-- separate Express/FastAPI backend
+- **Always use semantic CSS variable tokens**, never raw Tailwind color values.
+  - ✅ `text-muted-foreground`, `bg-background`, `border-border`, `bg-sidebar`, `text-sidebar-primary-foreground`
+  - ❌ `text-zinc-500`, `bg-white`, `border-gray-200`
+- **Use shadcn/ui components** wherever available before writing custom markup.
+- `--radius: 0` — no border radius anywhere (sharp corners throughout).
+- Font is monospace (`font-mono`) globally.
 
-- Redis
+---
 
-- queues/workers
+## Environment variables
 
-- Docker/VPS complexity
-
-- self-hosted storage
-
-- unnecessary abstractions
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SERVICE_ROLE_KEY=        # server-only, never expose client-side
+NEXT_PUBLIC_SITE_URL=             # e.g. http://localhost:3000
+```
 
 ---
 
 ## Core Product Roles
 
 ### Admin
-
-The business owner. Full access.
-
-Can:
-
-- create and manage creator accounts
-
-- manage catalog
-
-- set pricing
-
-- view all campaigns and orders
-
-- download production package
-
-- mark campaigns fulfilled
+Full access. Creates creator accounts, manages catalog, views all campaigns and orders, downloads production exports, marks campaigns fulfilled.
 
 ### Creator
-
-Authenticated group organizer.
-
-Can:
-
-- log in
-
-- create campaign drafts
-
-- choose products and colors
-
-- upload design files by placement
-
-- publish campaign
-
-- view orders for own campaigns
-
-Cannot:
-
-- set or edit prices
-
-- access other creators' campaigns
+Authenticated group organizer. Creates campaigns, selects products/colors, uploads designs, publishes campaigns, views orders for own campaigns. Cannot set prices or access other creators' data.
 
 ### Buyer
-
-Anonymous customer.
-
-Can:
-
-- access storefront through shared campaign link
-
-- browse available products
-
-- add items to local cart
-
-- submit one order form
-
-Cannot:
-
-- create account
-
-- edit campaign
-
-- pay online
+Anonymous. Accesses storefront via shared link, adds items to localStorage cart, submits one order form. No account, no online payment.
 
 ---
 
-## Product Scope
+## Build Status
 
-### Main features for v1
+### ✅ Done
 
-1. **Login**
+**Auth & routing**
+- `middleware.ts` — session refresh + route protection; public routes: `/`, `/login`, `/store/*`, `/auth/callback`, `/auth/confirm`
+- `/login` — email + password, redirects to `/admin` or `/dashboard` based on role
+- `/set-password` — used after creator accepts invite email
+- `/auth/callback` — PKCE token exchange (route handler)
+- `/auth/confirm` — implicit/hash token exchange (client page, used for invite emails)
 
-    - admin and creator only
+**Admin**
+- `/admin` — overview with stat cards (creators, live campaigns, orders) and recent campaigns table
+- `/admin/creators` — list creators, invite new creators (Supabase invite email), delete creators
+- `/admin/products` — tabbed catalog: Products / Colors / Sizes / Placements; full CRUD for each
+- `/admin/products/[id]` — edit product details, assign colors/sizes/placements via checkboxes
+- `/admin/campaigns` — list all campaigns with status, creator, deadline, order count
 
-    - no public signup
+**Creator**
+- `/dashboard` — list own campaigns with status, deadline, order count
+- `/dashboard/campaigns/new` — create campaign draft (title, slug, description, deadline; defaults to 2 weeks)
+- `/dashboard/campaigns/[id]` — edit campaign details, add/remove products with color selection, publish/unpublish
 
-    - creator accounts created by admin
+**Database**
+- Full schema in `supabase/schema.sql` — 15 tables, RLS on all, `is_admin()` helper function
+- TypeScript types in `types/index.ts`
 
-2. **Admin catalog management**
+### 🔲 Not yet built
 
-    - products
-
-    - colors
-
-    - sizes
-
-    - placements
-
-    - mockup images
-
-    - prices
-
-3. **Creator campaign builder**
-
-    - details
-
-    - product selection
-
-    - design uploads
-
-    - review
-
-    - publish
-
-4. **Public storefront**
-
-    - campaign-based
-
-    - anonymous ordering
-
-    - localStorage cart
-
-    - order form submission
-
-    - closed state after expiration
-
-5. **Order storage**
-
-    - save order and order items
-
-    - associate with campaign
-
-6. **Email notifications**
-
-    - buyer confirmation
-
-    - admin new campaign notification
-
-    - admin daily digest
-
-7. **Production exports**
-
-    - NLA purchase list
-
-    - print spec sheet PDF
-
-    - distribution list
-
-8. **Campaign lifecycle**
-
-    - draft
-
-    - live
-
-    - closed
-
-    - fulfilled
+- **Public storefront** — `/store/[slug]`, localStorage cart, order submission
+- **Design uploads** — creator uploads design files per product + placement (needs Supabase Storage bucket)
+- **Admin campaign detail** — `/admin/campaigns/[id]`, view orders, mark fulfilled
+- **Email notifications** — buyer confirmation, admin new order alert, daily digest
+- **Production exports** — NLA purchase list, print spec PDF, distribution list
+- **Cron job** — auto-close campaigns past their deadline
+- **Mockup images** — admin uploads per product + color
 
 ---
 
-## Architecture
+## Supabase setup notes
 
-### App structure
-
-Use one Next.js app with:
-
-- public pages
-
-- admin pages
-
-- creator pages
-
-- route handlers / server actions
-
-### Hosting
-
-- Deploy app on **Vercel**
-
-- Use **Supabase** for database, auth, and file storage
-
-### Scheduled jobs
-
-Use **Vercel Cron** for:
-
-- closing expired campaigns
-
-- sending daily order summaries
-
-### File storage
-
-Use **Supabase Storage** for:
-
-- product mockup images
-
-- uploaded campaign design files
-
-- optional generated export files
-
-### PDF generation
-
-Use **pdf-lib** to generate production PDFs on demand.
+1. Run `supabase/schema.sql` in the SQL editor
+2. Create admin user in Auth dashboard (email + password)
+3. Insert admin profile manually:
+   ```sql
+   insert into profiles (id, role, full_name, email)
+   values ('<uuid>', 'admin', 'Your Name', 'you@example.com');
+   ```
+4. Add `http://localhost:3000/auth/confirm` to Auth → URL Configuration → Redirect URLs
 
 ---
 
-## Folder Structure
+## Actual folder structure
 
-```txt
-
-/
-
+```
 ├── app/
-
-│   ├── (public)/
-
-│   │   ├── page.tsx
-
-│   │   └── store/
-
-│   │       └── [slug]/
-
-│   │           └── page.tsx
-
-│   ├── (auth)/
-
-│   │   └── login/
-
-│   │       └── page.tsx
-
-│   ├── (creator)/
-
-│   │   └── dashboard/
-
-│   │       ├── page.tsx
-
-│   │       └── campaigns/
-
-│   │           ├── new/
-
-│   │           │   └── page.tsx
-
-│   │           └── [id]/
-
-│   │               └── page.tsx
-
-│   ├── (admin)/
-
-│   │   └── admin/
-
-│   │       ├── page.tsx
-
-│   │       ├── creators/
-
-│   │       │   └── page.tsx
-
-│   │       ├── products/
-
-│   │       │   └── page.tsx
-
-│   │       └── campaigns/
-
-│   │           └── page.tsx
-
-│   └── api/
-
-│       ├── campaigns/
-
-│       ├── orders/
-
-│       ├── uploads/
-
-│       ├── cron/
-
-│       └── auth/
-
+│   ├── (admin)/
+│   │   ├── layout.tsx                        # role check → admin only
+│   │   └── admin/
+│   │       ├── page.tsx                      # overview
+│   │       ├── campaigns/page.tsx
+│   │       ├── creators/
+│   │       │   ├── page.tsx
+│   │       │   └── actions.ts
+│   │       └── products/
+│   │           ├── page.tsx                  # tabbed catalog
+│   │           ├── actions.ts
+│   │           └── [id]/
+│   │               ├── page.tsx
+│   │               ├── actions.ts
+│   │               ├── product-details-form.tsx
+│   │               └── product-assignments.tsx
+│   ├── (auth)/
+│   │   ├── layout.tsx
+│   │   ├── login/
+│   │   │   ├── page.tsx
+│   │   │   └── actions.ts
+│   │   └── set-password/
+│   │       ├── page.tsx
+│   │       └── actions.ts
+│   ├── (creator)/
+│   │   ├── layout.tsx                        # role check → creator only
+│   │   └── dashboard/
+│   │       ├── page.tsx
+│   │       └── campaigns/
+│   │           ├── new/
+│   │           │   ├── page.tsx
+│   │           │   └── actions.ts
+│   │           └── [id]/
+│   │               ├── page.tsx
+│   │               ├── actions.ts
+│   │               ├── campaign-actions.tsx  # publish/unpublish client component
+│   │               └── details-form-client.tsx
+│   ├── auth/
+│   │   ├── callback/route.ts                 # PKCE token exchange
+│   │   └── confirm/page.tsx                  # hash token exchange (invite flow)
+│   ├── layout.tsx
+│   ├── page.tsx
+│   └── globals.css
 ├── components/
-
-│   ├── ui/
-
-│   ├── admin/
-
-│   ├── creator/
-
-│   └── store/
-
+│   ├── admin/
+│   │   ├── sidebar.tsx
+│   │   ├── catalog-tab-nav.tsx
+│   │   ├── create-product-dialog.tsx
+│   │   ├── create-catalog-item-dialog.tsx
+│   │   ├── create-creator-dialog.tsx
+│   │   ├── delete-catalog-item-button.tsx
+│   │   └── delete-creator-button.tsx
+│   ├── creator/
+│   │   ├── sidebar.tsx
+│   │   ├── add-product-dialog.tsx
+│   │   └── campaign-product-card.tsx
+│   ├── store/                                # not yet built
+│   └── ui/                                   # shadcn components
+│       ├── badge.tsx
+│       ├── button.tsx
+│       ├── card.tsx
+│       ├── checkbox.tsx
+│       ├── dialog.tsx
+│       ├── input.tsx
+│       ├── label.tsx
+│       ├── table.tsx
+│       └── textarea.tsx
 ├── lib/
-
-│   ├── supabase/
-
-│   │   ├── client.ts
-
-│   │   ├── server.ts
-
-│   │   └── middleware.ts
-
-│   ├── auth.ts
-
-│   ├── email.ts
-
-│   ├── pdf.ts
-
-│   ├── validation.ts
-
-│   └── utils.ts
-
-├── public/
-
-│   └── placeholder-mockups/
-
+│   ├── client.ts                             # Supabase browser client
+│   ├── server.ts                             # Supabase server client (cookies)
+│   ├── middleware.ts                         # updateSession() — session refresh only
+│   ├── admin-client.ts                       # Supabase service role client (server-only)
+│   └── utils.ts                              # cn() helper
+├── supabase/
+│   └── schema.sql
 ├── types/
-
-│   └── index.ts
-
-└── middleware.ts
-
+│   └── index.ts
+└── middleware.ts                             # route protection + session refresh
 ```
