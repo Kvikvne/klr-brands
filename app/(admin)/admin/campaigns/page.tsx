@@ -28,11 +28,19 @@ export default async function CampaignsPage() {
 
   return (
     <div className="p-8 max-w-5xl">
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold">Campaigns</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          All campaigns across all creators
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold">Campaigns</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            All campaigns across all creators
+          </p>
+        </div>
+        <Link
+          href="/admin/campaigns/new"
+          className="flex h-8 items-center border border-border bg-primary px-3 text-xs font-medium text-primary-foreground hover:opacity-90 transition-opacity shrink-0"
+        >
+          New campaign
+        </Link>
       </div>
 
       {campaigns && campaigns.length > 0 ? (

@@ -7,6 +7,7 @@ import {
     Users,
     Package,
     Megaphone,
+    ShoppingBag,
     LogOut,
 } from "lucide-react";
 
@@ -15,6 +16,7 @@ const NAV = [
     { href: "/admin/creators", label: "Creators", icon: Users },
     { href: "/admin/products", label: "Products", icon: Package },
     { href: "/admin/campaigns", label: "Campaigns", icon: Megaphone },
+    { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
 ];
 
 interface Props {

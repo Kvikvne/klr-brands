@@ -11,7 +11,8 @@ function isPublicRoute(pathname: string) {
     pathname === '/login' ||
     pathname === '/auth/callback' ||
     pathname === '/auth/confirm' ||
-    pathname.startsWith('/store/')
+    pathname.startsWith('/store/') ||
+    pathname.startsWith('/store')
   )
 }
 

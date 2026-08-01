@@ -64,7 +64,7 @@ function cartTotal(cart: CartItem[]) {
 
 // ── Main component ───────────────────────────────────────────────────────────
 
-export function StoreClient({ campaign }: { campaign: StoreCampaign }) {
+export function StoreClient({ campaign, mockupUrl }: { campaign: StoreCampaign; mockupUrl: string | null }) {
   const isLive = campaign.status === 'live'
 
   // Cart — hydrated from localStorage after mount
@@ -335,6 +335,15 @@ export function StoreClient({ campaign }: { campaign: StoreCampaign }) {
             </p>
           )}
         </div>
+
+        {/* Mockup image */}
+        {mockupUrl && (
+          <img
+            src={mockupUrl}
+            alt={`${campaign.title} mockup`}
+            className="w-full max-h-96 object-contain border border-border"
+          />
+        )}
 
         {/* Products */}
         <section className="space-y-4">

@@ -1,15 +1,7 @@
 'use server'
 
-import { createClient } from '@/lib/server'
+import { verifyAdmin } from '@/lib/server'
 import { revalidatePath } from 'next/cache'
-
-async function verifyAdmin() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
-  const { data } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  return data?.role === 'admin' ? supabase : null
-}
 
 export async function updateProduct(
   productId: string,

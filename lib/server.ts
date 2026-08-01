@@ -31,3 +31,19 @@ export async function createClient() {
     }
   )
 }
+
+/**
+ * Returns the Supabase client if the current session belongs to an admin, null otherwise.
+ * Use this at the top of every admin server action.
+ */
+export async function verifyAdmin() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+  const { data } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+  return data?.role === 'admin' ? supabase : null
+}

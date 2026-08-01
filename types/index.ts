@@ -5,7 +5,7 @@
 export type UserRole = 'admin' | 'creator'
 export type CampaignStatus = 'draft' | 'live' | 'closed' | 'fulfilled'
 export type FulfillmentType = 'pickup' | 'delivery'
-export type OrderStatus = 'pending' | 'fulfilled'
+export type OrderStatus = 'pending' | 'confirmed' | 'fulfilled' | 'cancelled'
 
 
 // ============================================================
@@ -86,6 +86,7 @@ export interface Campaign {
   published_at: string | null
   closed_at: string | null
   fulfilled_at: string | null
+  image_path: string | null
   created_at: string
   updated_at: string
 }

@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer'
+import { generateCancelToken } from '@/lib/cancel-token'
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -45,6 +46,10 @@ export async function sendOrderConfirmation({
       ? `Delivery to: ${deliveryAddress}`
       : 'Fulfillment: Pickup'
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ''
+  const cancelToken = generateCancelToken(orderId)
+  const cancelUrl = `${siteUrl}/store/cancel?id=${orderId}&token=${cancelToken}`
+
   const text = `Hi ${buyerName},
 
 Your order for ${campaignTitle} has been received!
@@ -58,6 +63,10 @@ Total: $${total.toFixed(2)}
 ${fulfillmentLine}
 
 Order reference: ${orderId}
+
+─────────────
+Need to cancel? You can cancel your order here (only available before we order materials):
+${cancelUrl}
 
 We'll be in touch with next steps.
 `

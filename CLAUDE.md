@@ -33,7 +33,7 @@ This is a **v1 MVP** optimized for simplicity, low monthly cost, low maintenance
 - **Supabase Auth** — email/password + invite flow
 - **Supabase Storage** — design file and mockup image uploads (not yet implemented)
 - **Vercel** — hosting
-- **Gmail SMTP + Nodemailer** — email (not yet implemented)
+- **Gmail SMTP + Nodemailer** — buyer order confirmation email implemented; admin alerts not yet
 - **Vercel Cron** — scheduled jobs (not yet implemented)
 - **pdf-lib** — PDF generation (not yet implemented)
 
@@ -61,6 +61,8 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SERVICE_ROLE_KEY=        # server-only, never expose client-side
 NEXT_PUBLIC_SITE_URL=             # e.g. http://localhost:3000
+GMAIL_USER=                       # Gmail address used as the sender
+GMAIL_APP_PASSWORD=               # Google App Password (not regular password); requires 2FA on account
 ```
 
 ---
@@ -95,25 +97,36 @@ Anonymous. Accesses storefront via shared link, adds items to localStorage cart,
 - `/admin/products` — tabbed catalog: Products / Colors / Sizes / Placements; full CRUD for each
 - `/admin/products/[id]` — edit product details, assign colors/sizes/placements via checkboxes
 - `/admin/campaigns` — list all campaigns with status, creator, deadline, order count
+- `/admin/campaigns/[id]` — edit campaign details, change status (draft/live/closed/fulfilled), view products, view all orders with line items, delete campaign
 
 **Creator**
 - `/dashboard` — list own campaigns with status, deadline, order count
 - `/dashboard/campaigns/new` — create campaign draft (title, slug, description, deadline; defaults to 2 weeks)
 - `/dashboard/campaigns/[id]` — edit campaign details, add/remove products with color selection, publish/unpublish
 
+**Public storefront**
+- `/store/[slug]` — campaign listing with color/size selectors, localStorage cart (per-campaign), order submission
+- Buyer confirmation email sent via Nodemailer (Gmail SMTP) on successful order
+
 **Database**
 - Full schema in `supabase/schema.sql` — 15 tables, RLS on all, `is_admin()` helper function
 - TypeScript types in `types/index.ts`
+- **RLS fix applied manually in Supabase:** campaigns update policy allows creators to publish (draft→live) and unpublish (live→draft):
+  ```sql
+  create policy "creators: update own campaigns"
+    on campaigns for update
+    using (auth.uid() = creator_id and status in ('draft', 'live'))
+    with check (auth.uid() = creator_id);
+  ```
 
 ### 🔲 Not yet built
 
-- **Public storefront** — `/store/[slug]`, localStorage cart, order submission
-- **Design uploads** — creator uploads design files per product + placement (needs Supabase Storage bucket)
-- **Admin campaign detail** — `/admin/campaigns/[id]`, view orders, mark fulfilled
-- **Email notifications** — buyer confirmation, admin new order alert, daily digest
-- **Production exports** — NLA purchase list, print spec PDF, distribution list
-- **Cron job** — auto-close campaigns past their deadline
-- **Mockup images** — admin uploads per product + color
+- **Design uploads** — creator uploads design files per campaign product + placement (needs Supabase Storage bucket + UI)
+- **Mockup images** — admin uploads mockup per product + color (needs Supabase Storage bucket + UI); storefront currently shows no images
+- **Admin new order alert** — email to admin when a buyer submits an order (`lib/mailer.ts` exists, just needs a second send call in `submitOrder`)
+- **Production exports** — NLA purchase list, print spec PDF, distribution list (pdf-lib not yet used)
+- **Vercel Cron** — auto-close campaigns past their deadline (`vercel.json` cron + route handler not yet created)
+- **Daily digest email** — summary of orders sent to admin on a schedule
 
 ---
 
@@ -137,8 +150,14 @@ Anonymous. Accesses storefront via shared link, adds items to localStorage cart,
 │   ├── (admin)/
 │   │   ├── layout.tsx                        # role check → admin only
 │   │   └── admin/
-│   │       ├── page.tsx                      # overview
-│   │       ├── campaigns/page.tsx
+│   │       ├── page.tsx                      # overview / stat cards
+│   │       ├── campaigns/
+│   │       │   ├── page.tsx                  # all campaigns table
+│   │       │   └── [id]/
+│   │       │       ├── page.tsx              # detail: edit, orders, delete
+│   │       │       ├── actions.ts
+│   │       │       ├── campaign-details-form.tsx
+│   │       │       └── delete-campaign-button.tsx
 │   │       ├── creators/
 │   │       │   ├── page.tsx
 │   │       │   └── actions.ts
@@ -171,6 +190,11 @@ Anonymous. Accesses storefront via shared link, adds items to localStorage cart,
 │   │               ├── actions.ts
 │   │               ├── campaign-actions.tsx  # publish/unpublish client component
 │   │               └── details-form-client.tsx
+│   ├── store/
+│   │   └── [slug]/
+│   │       ├── page.tsx                      # server fetch → passes to client
+│   │       ├── store-client.tsx              # cart, selectors, checkout, confirmation
+│   │       └── actions.ts                    # submitOrder + buyer confirmation email
 │   ├── auth/
 │   │   ├── callback/route.ts                 # PKCE token exchange
 │   │   └── confirm/page.tsx                  # hash token exchange (invite flow)
@@ -190,7 +214,6 @@ Anonymous. Accesses storefront via shared link, adds items to localStorage cart,
 │   │   ├── sidebar.tsx
 │   │   ├── add-product-dialog.tsx
 │   │   └── campaign-product-card.tsx
-│   ├── store/                                # not yet built
 │   └── ui/                                   # shadcn components
 │       ├── badge.tsx
 │       ├── button.tsx
@@ -206,6 +229,7 @@ Anonymous. Accesses storefront via shared link, adds items to localStorage cart,
 │   ├── server.ts                             # Supabase server client (cookies)
 │   ├── middleware.ts                         # updateSession() — session refresh only
 │   ├── admin-client.ts                       # Supabase service role client (server-only)
+│   ├── mailer.ts                             # Nodemailer transporter + sendOrderConfirmation()
 │   └── utils.ts                              # cn() helper
 ├── supabase/
 │   └── schema.sql
@@ -213,3 +237,12 @@ Anonymous. Accesses storefront via shared link, adds items to localStorage cart,
 │   └── index.ts
 └── middleware.ts                             # route protection + session refresh
 ```
+
+## graphify
+
+This project has a graphify knowledge graph at graphify-out/.
+
+Rules:
+- Before answering architecture or codebase questions, read graphify-out/GRAPH_REPORT.md for god nodes and community structure
+- If graphify-out/wiki/index.md exists, navigate it instead of reading raw files
+- After modifying code files in this session, run `python3 -c "from graphify.watch import _rebuild_code; from pathlib import Path; _rebuild_code(Path('.'))"` to keep the graph current

@@ -1,21 +1,7 @@
 'use server'
 
-import { createClient } from '@/lib/server'
+import { verifyAdmin } from '@/lib/server'
 import { createAdminClient } from '@/lib/admin-client'
-
-async function verifyAdmin() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  return profile?.role === 'admin' ? user : null
-}
 
 export async function createCreator(formData: FormData): Promise<string | null> {
   const fullName = (formData.get('full_name') as string).trim()

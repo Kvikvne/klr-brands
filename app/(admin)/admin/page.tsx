@@ -37,7 +37,7 @@ export default async function AdminOverviewPage() {
     return (
         <div className="p-8 max-w-4xl">
             <h1 className="text-xl font-semibold">Overview</h1>
-            <p className="mt-1">Your platform at a glance</p>
+            {/* <p className="mt-1">Your platform at a glance</p> */}
 
             {/* Stats */}
             <div className="mt-6 grid grid-cols-3 gap-4">
@@ -54,7 +54,7 @@ export default async function AdminOverviewPage() {
                 <StatCard
                     label="Total orders"
                     value={orderCount ?? 0}
-                    href="/admin/campaigns"
+                    href="/admin/orders"
                 />
             </div>
 

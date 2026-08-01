@@ -14,7 +14,7 @@ export default async function StorePage({
     .from('campaigns')
     .select(
       `
-      id, title, slug, description, status, deadline,
+      id, title, slug, description, status, deadline, image_path,
       campaign_products (
         id,
         price_override,
@@ -32,5 +32,9 @@ export default async function StorePage({
 
   if (!campaign) notFound()
 
-  return <StoreClient campaign={campaign as any} />
+  const mockupUrl = campaign.image_path
+    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/mockups/${campaign.image_path}`
+    : null
+
+  return <StoreClient campaign={campaign as any} mockupUrl={mockupUrl} />
 }
