@@ -5,9 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { type CampaignStatus } from "@/types";
 import { CampaignDetailsForm } from "./campaign-details-form";
 import { DeleteCampaignButton } from "./delete-campaign-button";
-import { updateCampaign, uploadMockupImage } from "./actions";
+import { updateCampaign, uploadMockupImage, uploadCampaignProductImage } from "./actions";
 import { OrderStatusControl } from "@/components/admin/order-status-control";
 import { MockupUpload } from "@/components/admin/mockup-upload";
+import { AdminCampaignProductCard } from "@/components/admin/admin-campaign-product-card";
+import { AddCampaignProductDialog } from "@/components/admin/add-campaign-product-dialog";
+import { BulkOrderActions } from "@/components/admin/bulk-order-actions";
 import type { OrderStatus } from "@/types";
 
 const STATUS_VARIANT: Record<
@@ -28,44 +31,53 @@ export default async function AdminCampaignDetailPage({
     const { id } = await params;
     const supabase = await createClient();
 
-    const [{ data: campaign }, { data: orders }] = await Promise.all([
-        supabase
-            .from("campaigns")
-            .select(
-                `
-        *,
-        creator:profiles ( full_name, email ),
-        campaign_products (
-          id,
-          price_override,
-          product:products ( id, name, base_price ),
-          campaign_product_colors ( color:colors ( id, name, hex_code ) )
-        )
-      `,
-            )
-            .eq("id", id)
-            .single(),
-        supabase
-            .from("orders")
-            .select(
-                `
-        *,
-        order_items (
-          id, quantity, unit_price,
-          campaign_product:campaign_products ( product:products ( name ) ),
-          color:colors ( name ),
-          size:sizes ( name )
-        )
-      `,
-            )
-            .eq("campaign_id", id)
-            .order("created_at", { ascending: false }),
-    ]);
+    const [{ data: campaign }, { data: orders }, { data: allProducts }] =
+        await Promise.all([
+            supabase
+                .from("campaigns")
+                .select(
+                    `
+          *,
+          creator:profiles ( full_name, email ),
+          campaign_products (
+            id,
+            price_override,
+            image_path,
+            product:products ( id, name, base_price ),
+            campaign_product_colors ( color:colors ( id, name, hex_code ) )
+          )
+        `,
+                )
+                .eq("id", id)
+                .single(),
+            supabase
+                .from("orders")
+                .select(
+                    `
+          *,
+          order_items (
+            id, quantity, unit_price,
+            campaign_product:campaign_products ( product:products ( name ) ),
+            color:colors ( name ),
+            size:sizes ( name )
+          )
+        `,
+                )
+                .eq("campaign_id", id)
+                .order("created_at", { ascending: false }),
+            // All products with their available colors — we'll filter out already-added ones below
+            supabase
+                .from("products")
+                .select(
+                    "id, name, base_price, product_colors ( color:colors ( id, name, hex_code ) )",
+                )
+                .order("name"),
+        ]);
 
     if (!campaign) notFound();
 
     const creator = campaign.creator as any;
-    const campaignProducts = campaign.campaign_products as any[];
+    const campaignProducts = (campaign.campaign_products as any[]) ?? [];
     const updateAction = updateCampaign.bind(null, id);
     const uploadAction = uploadMockupImage.bind(null, id);
 
@@ -73,6 +85,21 @@ export default async function AdminCampaignDetailPage({
     const mockupUrl = campaign.image_path
         ? `${supabaseUrl}/storage/v1/object/public/mockups/${campaign.image_path}`
         : null;
+
+    // Products not yet added to this campaign
+    const addedProductIds = new Set(campaignProducts.map((cp: any) => cp.product?.id));
+    const availableProducts = (allProducts ?? []).filter(
+        (p: any) => !addedProductIds.has(p.id),
+    );
+
+    // All colors for edit-colors dialog — gathered from all products' colors (union)
+    const allColorsMap = new Map<string, { id: string; name: string; hex_code: string | null }>();
+    for (const p of allProducts ?? []) {
+        for (const pc of (p as any).product_colors ?? []) {
+            if (pc.color) allColorsMap.set(pc.color.id, pc.color);
+        }
+    }
+    const allColors = Array.from(allColorsMap.values());
 
     return (
         <div className="p-8 max-w-4xl space-y-10">
@@ -120,9 +147,9 @@ export default async function AdminCampaignDetailPage({
                 />
             </section>
 
-            {/* Mockup image */}
+            {/* Campaign banner mockup */}
             <section>
-                <h2 className="text-sm font-medium mb-3">Mockup image</h2>
+                <h2 className="text-sm font-medium mb-3">Banner image</h2>
                 <MockupUpload
                     currentUrl={mockupUrl}
                     uploadAction={uploadAction}
@@ -131,56 +158,48 @@ export default async function AdminCampaignDetailPage({
 
             {/* Products */}
             <section>
-                <h2 className="text-sm font-medium mb-3">
-                    Products ({campaignProducts.length})
-                </h2>
+                <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-sm font-medium">
+                        Products ({campaignProducts.length})
+                    </h2>
+                    <AddCampaignProductDialog
+                        campaignId={id}
+                        availableProducts={availableProducts as any}
+                    />
+                </div>
                 {campaignProducts.length === 0 ? (
                     <p className="text-sm text-muted-foreground">
-                        No products added.
+                        No products added yet.
                     </p>
                 ) : (
-                    <div className="border border-border divide-y divide-border">
+                    <div className="space-y-3">
                         {campaignProducts.map((cp: any) => {
                             const price =
                                 cp.price_override ?? cp.product?.base_price;
-                            const colors =
+                            const selectedColors =
                                 cp.campaign_product_colors?.map(
                                     (c: any) => c.color,
                                 ) ?? [];
+                            const cpMockupUrl = cp.image_path
+                                ? `${supabaseUrl}/storage/v1/object/public/mockups/${cp.image_path}`
+                                : null;
+                            const cpUploadAction = uploadCampaignProductImage.bind(
+                                null,
+                                id,
+                                cp.id,
+                            );
                             return (
-                                <div
+                                <AdminCampaignProductCard
                                     key={cp.id}
-                                    className="flex items-center justify-between px-3 py-2.5"
-                                >
-                                    <div className="space-y-1">
-                                        <span className="text-sm font-medium">
-                                            {cp.product?.name}
-                                        </span>
-                                        <div className="flex flex-wrap gap-1">
-                                            {colors.map((color: any) => (
-                                                <Badge
-                                                    key={color.id}
-                                                    variant="secondary"
-                                                    className="gap-1 text-xs"
-                                                >
-                                                    {color.hex_code && (
-                                                        <span
-                                                            className="inline-block h-2 w-2 border border-border"
-                                                            style={{
-                                                                backgroundColor:
-                                                                    color.hex_code,
-                                                            }}
-                                                        />
-                                                    )}
-                                                    {color.name}
-                                                </Badge>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <span className="text-sm text-muted-foreground shrink-0 ml-4">
-                                        ${Number(price).toFixed(2)}
-                                    </span>
-                                </div>
+                                    campaignId={id}
+                                    campaignProductId={cp.id}
+                                    productName={cp.product?.name ?? "—"}
+                                    price={price}
+                                    selectedColors={selectedColors}
+                                    availableColors={allColors}
+                                    mockupUrl={cpMockupUrl}
+                                    uploadAction={cpUploadAction}
+                                />
                             );
                         })}
                     </div>
@@ -189,9 +208,20 @@ export default async function AdminCampaignDetailPage({
 
             {/* Orders */}
             <section>
-                <h2 className="text-sm font-medium mb-3">
-                    Orders ({orders?.length ?? 0})
-                </h2>
+                <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-sm font-medium">
+                        Orders ({orders?.length ?? 0})
+                    </h2>
+                </div>
+                {orders && orders.length > 0 && (
+                    <div className="mb-4">
+                        <BulkOrderActions
+                            campaignId={id}
+                            pendingCount={orders.filter((o) => o.status === 'pending').length}
+                            confirmedCount={orders.filter((o) => o.status === 'confirmed').length}
+                        />
+                    </div>
+                )}
                 {!orders || orders.length === 0 ? (
                     <p className="text-sm text-muted-foreground">
                         No orders yet.
@@ -258,7 +288,8 @@ export default async function AdminCampaignDetailPage({
 
                                     {order.delivery_address && (
                                         <p className="text-xs text-muted-foreground">
-                                            Deliver to: {order.delivery_address}
+                                            Deliver to:{" "}
+                                            {order.delivery_address}
                                         </p>
                                     )}
 

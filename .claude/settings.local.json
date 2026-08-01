@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx shadcn:*)"
+      "Bash(npx shadcn:*)",
+      "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\('next:', p.dependencies?.next || p.devDependencies?.next\\)\")",
+      "Bash(node -e \"const src = require\\('fs'\\).readFileSync\\('./node_modules/next/dist/server/app-render/app-render.js','utf8'\\); const matches = [...src.matchAll\\(/serverActions[^\\)]/g\\)]; matches.slice\\(0,10\\).forEach\\(m => console.log\\(src.slice\\(Math.max\\(0,m.index-100\\),m.index+100\\)\\)\\)\")",
+      "Bash(node -e \"const src = require\\('fs'\\).readFileSync\\('./node_modules/next/dist/server/next-server.js','utf8'\\); const i = src.indexOf\\('serverActions:'\\); const chunk = src.slice\\(Math.max\\(0,i-100\\), i+200\\); console.log\\(chunk\\)\")"
     ]
   }
 }

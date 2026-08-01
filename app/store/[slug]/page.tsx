@@ -18,6 +18,7 @@ export default async function StorePage({
       campaign_products (
         id,
         price_override,
+        image_path,
         product:products (
           id, name, description, base_price,
           product_sizes ( size:sizes ( id, name, sort_order ) )
@@ -32,9 +33,21 @@ export default async function StorePage({
 
   if (!campaign) notFound()
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const mockupUrl = campaign.image_path
-    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/mockups/${campaign.image_path}`
+    ? `${supabaseUrl}/storage/v1/object/public/mockups/${campaign.image_path}`
     : null
 
-  return <StoreClient campaign={campaign as any} mockupUrl={mockupUrl} />
+  // Resolve per-product mockup URLs
+  const campaignWithUrls = {
+    ...campaign,
+    campaign_products: campaign.campaign_products?.map((cp: any) => ({
+      ...cp,
+      mockup_url: cp.image_path
+        ? `${supabaseUrl}/storage/v1/object/public/mockups/${cp.image_path}`
+        : null,
+    })),
+  }
+
+  return <StoreClient campaign={campaignWithUrls as any} mockupUrl={mockupUrl} />
 }

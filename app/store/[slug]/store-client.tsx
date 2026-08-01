@@ -34,6 +34,7 @@ interface StoreProduct {
 interface StoreCampaignProduct {
   id: string
   price_override: number | null
+  mockup_url: string | null
   product: StoreProduct
   campaign_product_colors: Array<{ color: StoreColor }>
 }
@@ -373,6 +374,15 @@ export function StoreClient({ campaign, mockupUrl }: { campaign: StoreCampaign; 
                       ${Number(price).toFixed(2)}
                     </span>
                   </div>
+
+                  {/* Product mockup image */}
+                  {cp.mockup_url && (
+                    <img
+                      src={cp.mockup_url}
+                      alt={`${cp.product.name} mockup`}
+                      className="w-full max-h-64 object-contain border border-border"
+                    />
+                  )}
 
                   {/* Color selector */}
                   {colors.length > 0 && (
