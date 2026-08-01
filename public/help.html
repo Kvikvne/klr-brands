@@ -1,0 +1,1001 @@
+<title>Admin Guide — Merch Platform</title>
+<style>
+    :root {
+        --bg: #f6f5f3;
+        --bg-card: #ffffff;
+        --text: #181a1e;
+        --text-secondary: #6c6e74;
+        --accent: #2a7a68;
+        --accent-subtle: #eaf4f2;
+        --border: #e5e3df;
+        --tag-pending: #fff4e5;
+        --tag-pending-text: #92520a;
+        --tag-confirmed: #eaf0ff;
+        --tag-confirmed-text: #2a4baa;
+        --tag-fulfilled: #eaf4f2;
+        --tag-fulfilled-text: #1a6052;
+        --tag-cancelled: #f5f0f0;
+        --tag-cancelled-text: #8a3535;
+        --step-num: #2a7a68;
+        --tip-bg: #eaf4f2;
+        --tip-border: #2a7a68;
+        --warn-bg: #fff8ec;
+        --warn-border: #e0970a;
+        --warn-text: #7a5200;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --bg: #111214;
+            --bg-card: #1c1e22;
+            --text: #e6e4e0;
+            --text-secondary: #8a8c94;
+            --accent: #3d9c88;
+            --accent-subtle: #172620;
+            --border: #2a2c30;
+            --tag-pending: #2a2010;
+            --tag-pending-text: #d4882a;
+            --tag-confirmed: #101828;
+            --tag-confirmed-text: #7ea8f0;
+            --tag-fulfilled: #0e2420;
+            --tag-fulfilled-text: #5ec4b0;
+            --tag-cancelled: #221616;
+            --tag-cancelled-text: #d47878;
+            --step-num: #3d9c88;
+            --tip-bg: #0e2420;
+            --tip-border: #3d9c88;
+            --warn-bg: #241800;
+            --warn-border: #b07a10;
+            --warn-text: #d4a840;
+        }
+    }
+
+    :root[data-theme="light"] {
+        --bg: #f6f5f3;
+        --bg-card: #ffffff;
+        --text: #181a1e;
+        --text-secondary: #6c6e74;
+        --accent: #2a7a68;
+        --accent-subtle: #eaf4f2;
+        --border: #e5e3df;
+        --tag-pending: #fff4e5;
+        --tag-pending-text: #92520a;
+        --tag-confirmed: #eaf0ff;
+        --tag-confirmed-text: #2a4baa;
+        --tag-fulfilled: #eaf4f2;
+        --tag-fulfilled-text: #1a6052;
+        --tag-cancelled: #f5f0f0;
+        --tag-cancelled-text: #8a3535;
+        --step-num: #2a7a68;
+        --tip-bg: #eaf4f2;
+        --tip-border: #2a7a68;
+        --warn-bg: #fff8ec;
+        --warn-border: #e0970a;
+        --warn-text: #7a5200;
+    }
+
+    :root[data-theme="dark"] {
+        --bg: #111214;
+        --bg-card: #1c1e22;
+        --text: #e6e4e0;
+        --text-secondary: #8a8c94;
+        --accent: #3d9c88;
+        --accent-subtle: #172620;
+        --border: #2a2c30;
+        --tag-pending: #2a2010;
+        --tag-pending-text: #d4882a;
+        --tag-confirmed: #101828;
+        --tag-confirmed-text: #7ea8f0;
+        --tag-fulfilled: #0e2420;
+        --tag-fulfilled-text: #5ec4b0;
+        --tag-cancelled: #221616;
+        --tag-cancelled-text: #d47878;
+        --step-num: #3d9c88;
+        --tip-bg: #0e2420;
+        --tip-border: #3d9c88;
+        --warn-bg: #241800;
+        --warn-border: #b07a10;
+        --warn-text: #d4a840;
+    }
+
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+            -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial,
+            sans-serif;
+        font-size: 15px;
+        line-height: 1.65;
+        padding: 48px 20px 96px;
+    }
+
+    .page {
+        max-width: 660px;
+        margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    .doc-header {
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 32px;
+        margin-bottom: 48px;
+    }
+
+    .doc-eyebrow {
+        font-family: ui-monospace, "Cascadia Code", "Fira Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 12px;
+    }
+
+    .doc-title {
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+        text-wrap: balance;
+        color: var(--text);
+        margin-bottom: 10px;
+    }
+
+    .doc-subtitle {
+        color: var(--text-secondary);
+        font-size: 15px;
+        max-width: 520px;
+        text-wrap: balance;
+    }
+
+    /* ── Sections ── */
+    .section {
+        margin-bottom: 52px;
+    }
+
+    .section-label {
+        font-family: ui-monospace, "Cascadia Code", "Fira Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        margin-bottom: 6px;
+    }
+
+    .section-title {
+        font-size: 19px;
+        font-weight: 700;
+        letter-spacing: -0.015em;
+        color: var(--text);
+        margin-bottom: 16px;
+        text-wrap: balance;
+    }
+
+    .section-intro {
+        color: var(--text-secondary);
+        margin-bottom: 20px;
+        font-size: 14.5px;
+    }
+
+    /* ── Steps ── */
+    .steps {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .step {
+        display: grid;
+        grid-template-columns: 28px 1fr;
+        gap: 0 16px;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .step:last-child {
+        border-bottom: none;
+    }
+
+    .step-num {
+        font-family: ui-monospace, "Cascadia Code", "Fira Mono", monospace;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--step-num);
+        line-height: 1.65;
+        padding-top: 1px;
+    }
+
+    .step-body strong {
+        display: block;
+        font-weight: 600;
+        font-size: 14.5px;
+        color: var(--text);
+        margin-bottom: 3px;
+    }
+
+    .step-body p {
+        color: var(--text-secondary);
+        font-size: 14px;
+    }
+
+    /* ── Cards ── */
+    .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        padding: 20px 22px;
+        margin-bottom: 12px;
+    }
+
+    .card-title {
+        font-weight: 600;
+        font-size: 14.5px;
+        margin-bottom: 6px;
+    }
+
+    .card p {
+        color: var(--text-secondary);
+        font-size: 14px;
+    }
+
+    /* ── Field reference table ── */
+    .field-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+    }
+
+    .field-table th {
+        text-align: left;
+        font-family: ui-monospace, "Cascadia Code", "Fira Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        padding: 0 12px 10px 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .field-table td {
+        padding: 10px 12px 10px 0;
+        vertical-align: top;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .field-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .field-name {
+        font-family: ui-monospace, "Cascadia Code", "Fira Mono", monospace;
+        font-size: 12.5px;
+        color: var(--accent);
+        white-space: nowrap;
+    }
+
+    .field-req {
+        font-family: ui-monospace, "Cascadia Code", "Fira Mono", monospace;
+        font-size: 10px;
+        color: var(--text-secondary);
+        white-space: nowrap;
+    }
+
+    .field-desc {
+        color: var(--text-secondary);
+        font-size: 13.5px;
+    }
+
+    /* ── Status pipeline ── */
+    .pipeline {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        flex-wrap: wrap;
+        margin: 20px 0;
+    }
+
+    .pipeline-step {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        flex: 1;
+        min-width: 110px;
+    }
+
+    .status-tag {
+        display: inline-block;
+        font-family: ui-monospace, "Cascadia Code", "Fira Mono", monospace;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 9px;
+        letter-spacing: 0.04em;
+    }
+
+    .status-tag.pending {
+        background: var(--tag-pending);
+        color: var(--tag-pending-text);
+    }
+    .status-tag.confirmed {
+        background: var(--tag-confirmed);
+        color: var(--tag-confirmed-text);
+    }
+    .status-tag.fulfilled {
+        background: var(--tag-fulfilled);
+        color: var(--tag-fulfilled-text);
+    }
+    .status-tag.cancelled {
+        background: var(--tag-cancelled);
+        color: var(--tag-cancelled-text);
+    }
+
+    .pipeline-desc {
+        font-size: 12.5px;
+        color: var(--text-secondary);
+        max-width: 120px;
+        line-height: 1.4;
+    }
+
+    .pipeline-arrow {
+        font-size: 18px;
+        color: var(--border);
+        padding: 0 8px;
+        flex-shrink: 0;
+        align-self: flex-start;
+        margin-top: 4px;
+    }
+
+    /* ── Tip / Warning callouts ── */
+    .tip,
+    .warn {
+        padding: 13px 16px;
+        border-left: 3px solid;
+        font-size: 13.5px;
+        margin: 16px 0;
+    }
+
+    .tip {
+        background: var(--tip-bg);
+        border-color: var(--tip-border);
+        color: var(--accent);
+    }
+
+    .tip strong,
+    .warn strong {
+        display: block;
+        margin-bottom: 2px;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-family: ui-monospace, "Cascadia Code", "Fira Mono", monospace;
+    }
+
+    .tip p,
+    .warn p {
+        color: var(--text-secondary);
+        font-size: 13.5px;
+        margin: 0;
+    }
+
+    .warn {
+        background: var(--warn-bg);
+        border-color: var(--warn-border);
+        color: var(--warn-text);
+    }
+
+    /* ── URL display ── */
+    .url-display {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        padding: 12px 16px;
+        font-family: ui-monospace, "Cascadia Code", "Fira Mono", monospace;
+        font-size: 13px;
+        color: var(--accent);
+        word-break: break-all;
+        margin: 12px 0;
+    }
+
+    /* ── Divider ── */
+    .divider {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 52px 0;
+    }
+
+    /* ── Quick ref grid ── */
+    .quick-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    @media (max-width: 480px) {
+        .quick-grid {
+            grid-template-columns: 1fr;
+        }
+        .pipeline {
+            gap: 8px;
+        }
+        .pipeline-arrow {
+            display: none;
+        }
+    }
+
+    .quick-item {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        padding: 14px 16px;
+    }
+
+    .quick-item-label {
+        font-family: ui-monospace, "Cascadia Code", "Fira Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        margin-bottom: 4px;
+    }
+
+    .quick-item-val {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    /* ── Table of contents ── */
+    .toc {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        padding: 20px 22px;
+        margin-bottom: 48px;
+    }
+
+    .toc-title {
+        font-family: ui-monospace, "Cascadia Code", "Fira Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        margin-bottom: 12px;
+    }
+
+    .toc-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .toc-list a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 14px;
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+    }
+
+    .toc-list a:hover {
+        color: var(--accent);
+    }
+
+    .toc-num {
+        font-family: ui-monospace, "Cascadia Code", "Fira Mono", monospace;
+        font-size: 11px;
+        color: var(--accent);
+        flex-shrink: 0;
+        width: 18px;
+    }
+</style>
+
+<div class="page">
+    <!-- Header -->
+    <header class="doc-header">
+        <div class="doc-eyebrow">Admin Guide — Beta</div>
+        <h1 class="doc-title">
+            Running a group order from start to finish for retards
+        </h1>
+        <p class="doc-subtitle">
+            Everything you need to create a campaign, share the store link, and
+            manage orders I hope.
+        </p>
+    </header>
+
+    <!-- TOC -->
+    <nav class="toc">
+        <div class="toc-title">Contents</div>
+        <ul class="toc-list">
+            <li>
+                <a href="#login"><span class="toc-num">1</span>Logging in</a>
+            </li>
+            <li>
+                <a href="#campaign"
+                    ><span class="toc-num">2</span>Creating a campaign</a
+                >
+            </li>
+            <li>
+                <a href="#products"
+                    ><span class="toc-num">3</span>Adding products and mockup
+                    images</a
+                >
+            </li>
+            <li>
+                <a href="#publish"
+                    ><span class="toc-num">4</span>Publishing and sharing the
+                    link</a
+                >
+            </li>
+            <li>
+                <a href="#orders"
+                    ><span class="toc-num">5</span>Viewing and managing
+                    orders</a
+                >
+            </li>
+            <li>
+                <a href="#statuses"
+                    ><span class="toc-num">6</span>Order statuses explained</a
+                >
+            </li>
+            <li>
+                <a href="#bulk"><span class="toc-num">7</span>Bulk actions</a>
+            </li>
+            <li>
+                <a href="#export"
+                    ><span class="toc-num">8</span>Exporting orders to CSV</a
+                >
+            </li>
+            <li>
+                <a href="#delete"
+                    ><span class="toc-num">9</span>Deleting a campaign</a
+                >
+            </li>
+        </ul>
+    </nav>
+
+    <!-- 1. Login -->
+    <section class="section" id="login">
+        <div class="section-label">Step 1</div>
+        <h2 class="section-title">Logging in</h2>
+        <p class="section-intro">
+            The admin panel is only accessible to you — buyers never see it.
+        </p>
+
+        <div class="steps">
+            <div class="step">
+                <span class="step-num">01</span>
+                <div class="step-body">
+                    <strong>Go to the login page</strong>
+                    <p>
+                        Navigate to your site URL and add <code>/login</code> at
+                        the end. Enter your email and password.
+                    </p>
+                </div>
+            </div>
+            <div class="step">
+                <span class="step-num">02</span>
+                <div class="step-body">
+                    <strong>You'll land on the admin dashboard</strong>
+                    <p>
+                        You'll see a summary of active campaigns, total orders,
+                        and recent activity. The left sidebar has links to every
+                        section.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- 2. Campaign -->
+    <section class="section" id="campaign">
+        <div class="section-label">Step 2</div>
+        <h2 class="section-title">Creating a campaign</h2>
+        <p class="section-intro">
+            A campaign is a single group order — one storefront link, one
+            deadline, one set of products. Create a new one from
+            <strong>Admin → Campaigns → New Campaign</strong>.
+        </p>
+
+        <div style="overflow-x: auto; margin-bottom: 16px">
+            <table class="field-table">
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th></th>
+                        <th>What to put here</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="field-name">Title</td>
+                        <td class="field-req">required</td>
+                        <td class="field-desc">
+                            The name shown at the top of the store — e.g.
+                            "Spring 2025 Tees"
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">URL slug</td>
+                        <td class="field-req">required</td>
+                        <td class="field-desc">
+                            The short word that goes in the link — lowercase, no
+                            spaces, hyphens okay. E.g.
+                            <code>spring-2025</code> → your link becomes
+                            <code>/store/spring-2025</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">Description</td>
+                        <td class="field-req">optional</td>
+                        <td class="field-desc">
+                            A short blurb that appears on the storefront —
+                            pickup details, deadline reminders, anything useful
+                            for buyers
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">Deadline</td>
+                        <td class="field-req">optional</td>
+                        <td class="field-desc">
+                            The last day buyers can place orders. Shown on the
+                            storefront. Defaults to two weeks from today.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tip">
+            <strong>Tip</strong>
+            <p>
+                You can change the title, description, and deadline later — but
+                changing the slug after you've shared the link will break it.
+            </p>
+        </div>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- 3. Products -->
+    <section class="section" id="products">
+        <div class="section-label">Step 3</div>
+        <h2 class="section-title">Adding products and mockup images</h2>
+        <p class="section-intro">
+            After creating the campaign you'll be taken to its detail page.
+            Scroll down to the <strong>Products</strong> section and click
+            <strong>Add product</strong>.
+        </p>
+
+        <div class="steps">
+            <div class="step">
+                <span class="step-num">01</span>
+                <div class="step-body">
+                    <strong>Pick a product from the list</strong>
+                    <p>
+                        The list shows everything in your catalog. Click the one
+                        you want to add to this campaign.
+                    </p>
+                </div>
+            </div>
+            <div class="step">
+                <span class="step-num">02</span>
+                <div class="step-body">
+                    <strong>Select which colors to offer</strong>
+                    <p>
+                        Check all the color options you want buyers to be able
+                        to choose from. You must pick at least one.
+                    </p>
+                </div>
+            </div>
+            <div class="step">
+                <span class="step-num">03</span>
+                <div class="step-body">
+                    <strong
+                        >Upload a mockup image (optional, but
+                        recommended)</strong
+                    >
+                    <p>
+                        This is a photo or mockup of the finished item that
+                        buyers will see on the store. JPEG, PNG, or WebP — up to
+                        10 MB. You can skip this and upload it later using the
+                        "Upload" button on the product card.
+                    </p>
+                </div>
+            </div>
+            <div class="step">
+                <span class="step-num">04</span>
+                <div class="step-body">
+                    <strong>Click "Add to campaign"</strong>
+                    <p>
+                        The product appears in the list. Repeat for every item
+                        in this campaign.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="tip">
+            <strong>After adding</strong>
+            <p>
+                Each product card lets you replace the mockup image, edit which
+                colors are offered, or remove the product entirely — all without
+                touching any other products.
+            </p>
+        </div>
+
+        <div class="section-label" style="margin-top: 24px">Banner image</div>
+        <p
+            style="
+                font-size: 14px;
+                color: var(--text-secondary);
+                margin-top: 4px;
+            "
+        >
+            The <strong>Banner image</strong> section (above Products) is a
+            single wide image shown at the top of the storefront — a flat-lay,
+            lifestyle photo, or general campaign image. It's optional.
+        </p>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- 4. Publish -->
+    <section class="section" id="publish">
+        <div class="section-label">Step 4</div>
+        <h2 class="section-title">Publishing and sharing the link</h2>
+        <p class="section-intro">
+            New campaigns start as a <strong>Draft</strong> — invisible to
+            buyers. When you're ready, change the status to
+            <strong>Live</strong> in the Details section and save.
+        </p>
+
+        <div class="card">
+            <div class="card-title">Your store link</div>
+            <p>Once live, share this link with your group:</p>
+            <div class="url-display">
+                yourdomain.com/store/<em>your-slug</em>
+            </div>
+            <p>
+                Buyers don't need an account. They open the link, pick their
+                items, and check out.
+            </p>
+        </div>
+
+        <div class="warn">
+            <strong>Note</strong>
+            <p style="color: var(--warn-text)">
+                Setting the status back to <strong>Draft</strong> hides the
+                store immediately and any partially filled carts will be lost.
+                Only go live when you're ready to start collecting orders.
+            </p>
+        </div>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- 5. Orders -->
+    <section class="section" id="orders">
+        <div class="section-label">Step 5</div>
+        <h2 class="section-title">Viewing and managing orders</h2>
+        <p class="section-intro">
+            Orders come in as buyers check out. You can see them in two places:
+        </p>
+
+        <div class="quick-grid" style="margin-bottom: 20px">
+            <div class="quick-item">
+                <div class="quick-item-label">Admin → Orders</div>
+                <div class="quick-item-val">
+                    All orders, grouped by campaign
+                </div>
+            </div>
+            <div class="quick-item">
+                <div class="quick-item-label">Campaign detail page</div>
+                <div class="quick-item-val">Orders for that campaign only</div>
+            </div>
+        </div>
+
+        <p style="font-size: 14px; color: var(--text-secondary)">
+            Each order card shows the buyer's name, email, phone, fulfillment
+            preference (pickup or delivery), any delivery address and notes, and
+            a breakdown of everything they ordered with the per-item price.
+        </p>
+
+        <div class="tip" style="margin-top: 16px">
+            <strong>Changing an order's status</strong>
+            <p>
+                Each order card has four status buttons — click any one to
+                instantly move that order to that status. See the next section
+                for what each status means.
+            </p>
+        </div>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- 6. Statuses -->
+    <section class="section" id="statuses">
+        <div class="section-label">Step 6</div>
+        <h2 class="section-title">Order statuses explained</h2>
+        <p class="section-intro">
+            Each order moves through a simple pipeline. You control the status
+            manually — use it to track where you are in the fulfillment process.
+        </p>
+
+        <div class="pipeline">
+            <div class="pipeline-step">
+                <span class="status-tag pending">PENDING</span>
+                <span class="pipeline-desc"
+                    >Just placed. Buyer can still cancel via their email
+                    link.</span
+                >
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+                <span class="status-tag confirmed">CONFIRMED</span>
+                <span class="pipeline-desc"
+                    >You've ordered materials. Buyer can no longer cancel.</span
+                >
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+                <span class="status-tag fulfilled">FULFILLED</span>
+                <span class="pipeline-desc"
+                    >Order has been picked up or delivered.</span
+                >
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 4px">
+            <div class="card-title">
+                <span class="status-tag cancelled" style="margin-right: 8px"
+                    >CANCELLED</span
+                >
+            </div>
+            <p>
+                An order can be cancelled from any status — either by the buyer
+                (if still Pending, via the link in their confirmation email) or
+                by you at any point. Cancelled orders stay visible in the list
+                for your records.
+            </p>
+        </div>
+
+        <div class="tip">
+            <strong>When to mark Confirmed</strong>
+            <p>
+                Do this once you've placed your order for shirt blanks or print
+                materials. It signals to the platform that the order is locked —
+                the buyer's cancel link will stop working.
+            </p>
+        </div>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- 7. Bulk -->
+    <section class="section" id="bulk">
+        <div class="section-label">Step 7</div>
+        <h2 class="section-title">Bulk actions</h2>
+        <p class="section-intro">
+            At the top of the orders section on any campaign page you'll find
+            two shortcut buttons to move orders in bulk — no need to click each
+            card one by one.
+        </p>
+
+        <div class="card">
+            <div class="card-title">Confirm all pending</div>
+            <p>
+                Moves every
+                <span class="status-tag pending">PENDING</span> order to
+                <span class="status-tag confirmed">CONFIRMED</span> at once. Use
+                this when you've placed your materials order and want to lock
+                everything down in one go. The button shows how many orders will
+                be affected.
+            </p>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Fulfill all confirmed</div>
+            <p>
+                Moves every
+                <span class="status-tag confirmed">CONFIRMED</span> order to
+                <span class="status-tag fulfilled">FULFILLED</span> at once. Use
+                this after a pickup event or once you've finished delivering
+                everything.
+            </p>
+        </div>
+
+        <div class="warn">
+            <strong>Heads up</strong>
+            <p style="color: var(--warn-text)">
+                Both buttons apply immediately with no undo. Double-check before
+                clicking — especially "Confirm all pending," since it will lock
+                buyers out of cancelling.
+            </p>
+        </div>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- 8. Export -->
+    <section class="section" id="export">
+        <div class="section-label">Step 8</div>
+        <h2 class="section-title">Exporting orders to CSV</h2>
+        <p class="section-intro">
+            Click <strong>Export CSV</strong> in the bulk actions bar of any
+            campaign to download a spreadsheet you can open in Excel or Google
+            Sheets.
+        </p>
+
+        <div class="steps">
+            <div class="step">
+                <span class="step-num">—</span>
+                <div class="step-body">
+                    <strong>Materials needed (top section)</strong>
+                    <p>
+                        A totalled list of every product, color, and size
+                        combination across all orders — exactly what you need to
+                        place your materials order. One row per variant with the
+                        total quantity.
+                    </p>
+                </div>
+            </div>
+            <div class="step">
+                <span class="step-num">—</span>
+                <div class="step-body">
+                    <strong>Full order list (bottom section)</strong>
+                    <p>
+                        Every order in one row — buyer name, email, phone,
+                        status, fulfillment type, delivery address, notes, and
+                        all items summarized in a single column.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="tip">
+            <strong>Tip</strong>
+            <p>
+                Export again at any time — it always reflects the current state
+                of orders, including any status changes you've made since the
+                last export.
+            </p>
+        </div>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- 9. Delete -->
+    <section class="section" id="delete">
+        <div class="section-label">Step 9</div>
+        <h2 class="section-title">Deleting a campaign</h2>
+        <p class="section-intro">
+            The delete button is in the top-right corner of any campaign's
+            detail page.
+        </p>
+
+        <div class="warn">
+            <strong>This is permanent</strong>
+            <p style="color: var(--warn-text)">
+                Deleting a campaign removes it and every order associated with
+                it — permanently, with no way to recover. If the campaign has
+                existing orders, the confirmation dialog will tell you exactly
+                how many will be deleted. Export your CSV first if you need a
+                record.
+            </p>
+        </div>
+
+        <p style="font-size: 14px; color: var(--text-secondary)">
+            Campaigns that are simply finished don't need to be deleted —
+            setting the status to <strong>Fulfilled</strong> or
+            <strong>Closed</strong> is enough. Deletion is for campaigns created
+            by mistake or ones you want completely removed from your records.
+        </p>
+    </section>
+</div>

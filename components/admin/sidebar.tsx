@@ -9,6 +9,7 @@ import {
     Megaphone,
     ShoppingBag,
     LogOut,
+    BadgeQuestionMark,
 } from "lucide-react";
 
 const NAV = [
@@ -62,6 +63,18 @@ export function AdminSidebar({ fullName, logout }: Props) {
                     );
                 })}
             </nav>
+            <div className=" border-sidebar-border px-4 py-4 ">
+                <Link
+                    href={"/help.html"}
+                    target="blank"
+                    className={
+                        "flex items-center gap-2 text-xs text-muted-foreground hover:text-sidebar-foreground transition-colors"
+                    }
+                >
+                    <BadgeQuestionMark className="h-4 w-4 shrink-0" />
+                    Help
+                </Link>
+            </div>
 
             {/* User + Logout */}
             <div className="border-t border-sidebar-border px-4 py-4 ">
